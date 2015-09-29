@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"os"
 	"runtime"
 	"time"
 )
@@ -66,7 +65,14 @@ func main() {
 	http.HandleFunc("/work", func(w http.ResponseWriter, r *http.Request) {
 		requestHandler(w, r, jobQueue)
 	})
-	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+
+	http.HandleFunc("/work/more", func(w http.ResponseWriter, r *http.Request) {
+		dispatcher.Add(2)
+	})
+	http.HandleFunc("/work/less", func(w http.ResponseWriter, r *http.Request) {
+		dispatcher.Add(-1)
+	})
+	http.ListenAndServe(":5000", nil)
 }
 
 func init() {
