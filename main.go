@@ -2,8 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"net/http"
 	"os"
+	"runtime"
 	"time"
 )
 
@@ -23,8 +25,8 @@ func requestHandler(w http.ResponseWriter, r *http.Request, jobQueue chan Job) {
 	}
 
 	// Validate delay is in range 1 to 10 seconds.
-	if delay.Seconds() < 1 || delay.Seconds() > 10 {
-		http.Error(w, "The delay must be between 1 and 10 seconds, inclusively.", http.StatusBadRequest)
+	if delay.Seconds() < 1 || delay.Seconds() > 20 {
+		http.Error(w, "The delay must be between 1 and 20 seconds, inclusively.", http.StatusBadRequest)
 		return
 	}
 
@@ -36,10 +38,14 @@ func requestHandler(w http.ResponseWriter, r *http.Request, jobQueue chan Job) {
 	}
 
 	// Create Job and push the work onto the jobQueue.
-	job := Job{Name: name, Delay: delay}
+	job := Job{Name: name, Delay: delay, Done: make(chan struct{})}
+	fmt.Printf("job %s sending to queue  \n", job.Name)
 	jobQueue <- job
 
+	job.Wait()
+
 	// Render success.
+	fmt.Printf("Job %s done  \n", name)
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -61,4 +67,8 @@ func main() {
 		requestHandler(w, r, jobQueue)
 	})
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+}
+
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 }

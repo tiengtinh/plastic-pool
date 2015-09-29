@@ -30,8 +30,10 @@ func (d *Dispatcher) run() {
 
 func (d *Dispatcher) dispatch() {
 	for {
+		fmt.Printf("START select dispatch \n")
 		select {
 		case job := <-d.jobQueue:
+			fmt.Printf("START dispatch got job %s \n", job.Name)
 			go func() {
 				fmt.Printf("fetching workerJobQueue for: %s\n", job.Name)
 				workerJobQueue := <-d.workerPool

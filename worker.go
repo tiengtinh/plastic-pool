@@ -33,6 +33,7 @@ func (w Worker) start() {
 				// Dispatcher has added a job to my jobQueue.
 				fmt.Printf("worker%d: started %s, blocking for %f seconds\n", w.id, job.Name, job.Delay.Seconds())
 				time.Sleep(job.Delay)
+				job.Done <- struct{}{}
 				fmt.Printf("worker%d: completed %s!\n", w.id, job.Name)
 			case <-w.quitChan:
 				// We have been asked to stop.
